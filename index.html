@@ -2,20 +2,40 @@
 <html>
 <head><title>Redirecting...</title></head>
 <body>
-<p>Connecting to server, please wait...</p>
+<p id="status">Querying DNS...</p>
+<pre id="debug" style="font-size:12px;word-break:break-all;"></pre>
 <script>
-  fetch("https://cloudflare-dns.com/dns-query?name=rammovies.duckdns.org&type=TXT", {
+  const domain = "rammovies.duckdns.org";
+
+  fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=TXT`, {
     headers: { "Accept": "application/dns-json" }
   })
   .then(r => r.json())
   .then(data => {
-    const url = data.Answer[0].data.replace(/"/g, "");
-    window.location.href = url;
+    document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
+
+    if (!data.Answer || data.Answer.length === 0) {
+      document.getElementById("status").textContent = "❌ No TXT record found";
+      return;
+    }
+
+    // Try all answers, find the cloudflare one
+    const url = data.Answer
+      .map(a => a.data.replace(/"/g, "").trim())
+      .find(d => d.startsWith("https://"));
+
+    if (!url) {
+      document.getElementById("status").textContent = "❌ No valid URL in TXT record";
+      return;
+    }
+
+    document.getElementById("status").textContent = "✅ Found: " + url + " — Redirecting...";
+    setTimeout(() => window.location.href = url, 2000);
   })
-  .catch(() => {
-    document.body.innerHTML = "❌ Server is offline or unreachable.";
+  .catch(err => {
+    document.getElementById("status").textContent = "❌ Fetch failed";
+    document.getElementById("debug").textContent = err.toString();
   });
 </script>
 </body>
 </html>
-```
