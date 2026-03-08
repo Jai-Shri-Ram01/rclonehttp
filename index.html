@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Redirecting...</title></head>
+<body>
+<p>Connecting to server, please wait...</p>
+<script>
+  fetch("https://cloudflare-dns.com/dns-query?name=rammovies.duckdns.org&type=TXT", {
+    headers: { "Accept": "application/dns-json" }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const url = data.Answer[0].data.replace(/"/g, "");
+    window.location.href = url;
+  })
+  .catch(() => {
+    document.body.innerHTML = "❌ Server is offline or unreachable.";
+  });
+</script>
+</body>
+</html>
+```
