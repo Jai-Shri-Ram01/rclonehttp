@@ -2,22 +2,29 @@
 <html>
 <head>
   <title>Loading...</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 </head>
 <body>
-<p id="status">Connecting to server...</p>
+<p id="status">Connecting...</p>
 <script>
-  fetch("https://api.github.com/gists/65e182251b673a51c2e35", {
-    cache: "no-store"
-  })
+  fetch("https://api.github.com/gists/65e182251b673a51c2e35")
   .then(r => r.json())
   .then(data => {
-    const url = data.files["url.txt"].content.trim();
-    document.getElementById("status").textContent = "✅ Redirecting to: " + url;
+    // Show raw files for debugging
+    const files = data.files;
+    if (!files) {
+      document.getElementById("status").textContent = "❌ No files: " + JSON.stringify(data);
+      return;
+    }
+
+    // Get first file regardless of name
+    const firstFile = Object.values(files)[0];
+    const url = firstFile.content.trim();
+
+    document.getElementById("status").textContent = "✅ Redirecting: " + url;
     window.location.replace(url);
   })
   .catch(err => {
-    document.getElementById("status").textContent = "❌ Server offline: " + err;
+    document.getElementById("status").textContent = "❌ Error: " + err;
   });
 </script>
 </body>
