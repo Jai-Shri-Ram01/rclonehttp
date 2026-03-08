@@ -1,34 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head><title>Redirecting...</title></head>
+<head>
+  <title>Loading...</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+</head>
 <body>
 <p id="status">Connecting to server...</p>
 <script>
-  const GIST_ID = "your_gist_id_here";
-
-  fetch(`https://api.github.com/gists/${GIST_ID}`)
-    .then(r => r.json())
-    .then(data => {
-      const url = data.files["url.txt"].content.trim();
-      document.getElementById("status").textContent = "✅ Redirecting to " + url;
-      window.location.href = url;
-    })
-    .catch(() => {
-      document.getElementById("status").textContent = "❌ Server offline";
-    });
+  fetch("https://api.github.com/gists/65e182251b673a51c2e35", {
+    cache: "no-store"
+  })
+  .then(r => r.json())
+  .then(data => {
+    const url = data.files["url.txt"].content.trim();
+    document.getElementById("status").textContent = "✅ Redirecting to: " + url;
+    window.location.replace(url);
+  })
+  .catch(err => {
+    document.getElementById("status").textContent = "❌ Server offline: " + err;
+  });
 </script>
 </body>
 </html>
-```
-
----
-
-## How it now works
-```
-Script starts → gets Cloudflare URL
-      ↓
-Updates GitHub Gist (url.txt) via API
-      ↓
-User visits GitHub Page
-      ↓
-Page fetches Gist → reads URL → redirects ✅
