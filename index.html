@@ -2,40 +2,33 @@
 <html>
 <head><title>Redirecting...</title></head>
 <body>
-<p id="status">Querying DNS...</p>
-<pre id="debug" style="font-size:12px;word-break:break-all;"></pre>
+<p id="status">Connecting to server...</p>
 <script>
-  const domain = "rammovies.duckdns.org";
+  const GIST_ID = "your_gist_id_here";
 
-  fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=TXT`, {
-    headers: { "Accept": "application/dns-json" }
-  })
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById("debug").textContent = JSON.stringify(data, null, 2);
-
-    if (!data.Answer || data.Answer.length === 0) {
-      document.getElementById("status").textContent = "❌ No TXT record found";
-      return;
-    }
-
-    // Try all answers, find the cloudflare one
-    const url = data.Answer
-      .map(a => a.data.replace(/"/g, "").trim())
-      .find(d => d.startsWith("https://"));
-
-    if (!url) {
-      document.getElementById("status").textContent = "❌ No valid URL in TXT record";
-      return;
-    }
-
-    document.getElementById("status").textContent = "✅ Found: " + url + " — Redirecting...";
-    setTimeout(() => window.location.href = url, 2000);
-  })
-  .catch(err => {
-    document.getElementById("status").textContent = "❌ Fetch failed";
-    document.getElementById("debug").textContent = err.toString();
-  });
+  fetch(`https://api.github.com/gists/${GIST_ID}`)
+    .then(r => r.json())
+    .then(data => {
+      const url = data.files["url.txt"].content.trim();
+      document.getElementById("status").textContent = "✅ Redirecting to " + url;
+      window.location.href = url;
+    })
+    .catch(() => {
+      document.getElementById("status").textContent = "❌ Server offline";
+    });
 </script>
 </body>
 </html>
+```
+
+---
+
+## How it now works
+```
+Script starts → gets Cloudflare URL
+      ↓
+Updates GitHub Gist (url.txt) via API
+      ↓
+User visits GitHub Page
+      ↓
+Page fetches Gist → reads URL → redirects ✅
